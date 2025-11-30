@@ -1,87 +1,83 @@
-# ensemble-methods
-*Experimentos de análise comparativa entre métodos isolados e combinados*
+# Applied Machine Learning Portfolio
 
-## 🔹 Visão geral
+Este repositório consolida três projetos práticos de Machine Learning focados na comparação entre modelos isolados e **Métodos de Ensemble** (Stacking e Voting). O objetivo principal foi investigar se a combinação de modelos preditivos supera o desempenho de algoritmos individuais bem ajustados em diferentes domínios: Regressão, Processamento de Linguagem Natural (NLP) e Classificação de Imagens (via PCA).
 
-Este repositório reúne três projetos/notebooks de machine learning que exploram distintos cenários de predição, com foco especial em **ensemble methods**: comparar modelos clássicos (isolados) vs. combinar modelos via *voting* / *stacking*. O objetivo é:  
-- aplicar técnicas supervised learning sem redes neurais profundas;  
-- avaliar desempenho de modelos individuais;  
-- comparar com ensemble (voting e stacking);  
-- observar ganhos (ou não) com a combinação de modelos;  
-- documentar boas práticas de ML (pré-processamento, tuning, validação, ensemble).
+## Tecnologias e Ferramentas
+
+* **Linguagem:** Python
+* **Bibliotecas Principais:** Pandas, Scikit-learn, Numpy, Seaborn, NLTK.
+* **Conceitos Chave:** Pipelines, Feature Engineering, Hyperparameter Tuning (RandomizedSearchCV), Voting Classifiers, Stacking Regressors/Classifiers.
 
 ---
 
-## 📁 Estrutura do repositório
+## Projetos
 
-| Arquivo / Notebook | Descrição |
-|------------------|-----------|
-| `Facial_Recognition_with_Supervised_Learning.ipynb` | Experimento de reconhecimento facial (“pessoa X ou não”) usando features PCA. Testa modelos clássicos + voting + stacking. |
-| `ml_projeto_ensemble_class_good_book.ipynb` | Projeto genérico de classificação (base “bom livro/exemplo de livro didático”) para comparar modelos clássicos e ensembles. |
-| `predicting_movie_rental_durations.ipynb` | Regressão (ou regressão → classificação/região?) de duração de locação de filmes — explora predição de variáveis contínuas, possivelmente com ensembles (ou baseline de regressão). |
-| `README.md` | Documentação principal |
+### 1. Previsão de Duração de Aluguel de Filmes 
+**Arquivo:** `predicting_movie_rental_durations.py`
 
----
+**Objetivo:** Prever o número de dias que um cliente ficará com um DVD alugado (Regressão).
 
-## 🧠 Métodos e técnicas utilizados
+**Técnicas e Implementação:**
+* **Feature Engineering:**
+    * Tratamento de strings com Regex para criar *dummy variables* a partir da coluna `special_features` (Trailers, Deleted Scenes, etc.).
+    * Cálculo de aritmética de datas (`return_date` - `rental_date`) para definir o target.
+* **Modelagem:**
+    * Comparação entre **Lasso**, **Ridge**, **Linear Regression** e **Gradient Boosting Regressor**.
+    * Uso de `StandardScaler` e `ColumnTransformer` dentro de pipelines.
+* **Ensemble:**
+    * Implementação de um **Stacking Regressor** utilizando Lasso e Ridge na primeira camada e Linear Regression como meta-model.
 
-Em diferentes notebooks, foram usados os seguintes métodos:
-
-### ✅ Modelos individuais / baselines  
-- **LogisticRegression** — regressão logística para classificação.  
-- **SVC** (SVM) — classificação com margem, usando kernel(s) configuráveis.  
-- **KNeighborsClassifier** (KNN) — classificação baseada em similaridade/distância no espaço de features.  
-- Para problemas de regressão (quando aplicável): regressão linear ou similar (dependendo do notebook).  
-
-### 🧩 Técnicas de ensemble  
-- **VotingClassifier** — ensemble “soft voting” para classificação: combina probabilidades (ou scores) de múltiplos classificadores e decide pela classe com maior média.  
-- **StackingClassifier** — stacking (empilhamento): os modelos base geram predições que servem como features para um “meta-classificador” (no seu caso, geralmente LogisticRegression).  
-
-### 🔧 Pré-processamento & tuning  
-- Aplicação de **PCA** para redução de dimensionalidade (especialmente no notebook de reconhecimento facial).  
-- Uso de **RandomizedSearchCV** para ajustes de hiperparâmetros (C, kernel, número de vizinhos, pesos, etc.).  
-- Splits de treino/teste para validação da generalização.  
+**Aprendizado / Resultados:**
+* O **Gradient Boosting** e o **Stacking Regressor** superaram os modelos lineares simples.
+* Demonstrou como modelos de árvores e técnicas de ensemble capturam melhor as não-linearidades do comportamento do consumidor do que regressões puras.
 
 ---
 
-## 📊 O que foi testado / Métricas & Avaliação  
+### 2. Classificação de Sucesso de Livros (Good Reads) 
+**Arquivo:** `ml_projeto_ensemble_class_good_book.py`
 
-Para cada experimento foram avaliadas — quando cabível — métricas como:  
-- F1-score (para classificação) — via `f1_score`.  
-- AUC / ROC (quando aplicável).  
-- Comparação das performances dos modelos individuais vs. ensemble (voting / stacking).  
+**Objetivo:** Classificar se um livro é "Popular" ou "Impopular" com base em metadados e reviews textuais.
 
-Além disso, busca-se observar:  
-- Se ensemble supera modelos individuais;  
-- Em quais cenários (tipo de dados / distribuição / número de features) ensembles trazem ganho ou não;  
-- E quais trade-offs aparecem (complexidade, risco de overfitting, custo computacional).  
+**Técnicas e Implementação:**
+* **NLP (Processamento de Linguagem Natural):**
+    * Limpeza de texto: remoção de pontuação (Regex), conversão para minúsculas e remoção de **Stopwords** (NLTK).
+    * Vetorização: Uso intensivo de **TF-IDF** (Term Frequency-Inverse Document Frequency) aplicado separadamente a múltiplas colunas textuais (título, descrição, autores).
+* **Feature Engineering Numérica:**
+    * Criação da métrica `fraction-helpfulness` para tratar a utilidade das reviews.
+* **Modelagem & Ensemble:**
+    * Modelos base: KNN, Regressão Logística e Árvore de Decisão.
+    * Otimização de hiperparâmetros com `RandomizedSearchCV`.
+    * Comparação com **Soft Voting** e **Stacking Classifier**.
 
----
-
-## ✅ O que foi aprendido / Conclusões parciais
-
-- Ensembles via **VotingClassifier (soft voting)** tendem a dar ganhos consistentes quando os modelos base têm erros distintos (complementares).  
-- **Stacking** — quando implementado corretamente (com predições out-of-fold para meta) — pode superar o voting, mas exige cuidado para evitar *data leakage*.  
-- Pré-processamento e redução de dimensionalidade (como PCA) + tuning de hiperparâmetros são fundamentais para extrair bom desempenho de modelos clássicos.  
-- Modelos simples (LogisticRegression, SVM, KNN) ainda são bastante úteis quando combinados, mesmo sem redes neurais / deep learning — especialmente em domínios com features estruturadas ou extraídas via PCA.  
-- Em problemas com muitos dados ou alta dimensionalidade, a combinação de métodos e validação cuidadosa melhora estabilidade e generalização.  
+**Aprendizado / Resultados:**
+* **Insight Crítico:** Nem sempre o Ensemble vence. Neste caso específico, a **Regressão Logística** bem ajustada (L2 penalty) superou ou empatou com os métodos de ensemble mais complexos.
+* Isso reforçou a importância do princípio da parcimônia (Occam's Razor) em ML: se um modelo simples resolve bem, ele é preferível devido ao menor custo computacional.
 
 ---
 
-## 🎯 Quando usar este repositório / Para quem serve
+### 3. Reconhecimento Facial (Arnold Schwarzenegger) 
+**Arquivo:** `facial_recognition_with_supervised_learning.py`
 
-Este repositório é útil para:  
-- quem quer aprender e comparar **métodos clássicos de ML + ensembles**;  
-- quem está em contextos onde **deep learning não é viável** — por restrições computacionais, de dados ou de interpretabilidade;  
-- estudantes ou profissionais que querem ver **práticas de ML end-to-end**: pré-processamento, tuning, ensemble, avaliação;  
-- servir como base para adaptar para outros problemas (outros datasets de classificação / regressão).  
+**Objetivo:** Classificação binária para identificar se uma imagem pertence ao Arnold Schwarzenegger ou não, utilizando o dataset *Labeled Faces in the Wild*.
+
+**Técnicas e Implementação:**
+* **Dados:** Utilização de dados pré-processados via **PCA** (Principal Component Analysis) para redução de dimensionalidade.
+* **Modelagem:**
+    * SVM (Support Vector Machine), KNN e Regressão Logística.
+    * Ajuste fino de `class_weight='balanced'` para lidar com desbalanceamento de classes.
+* **Ensemble:**
+    * **Soft Voting Classifier** combinando as probabilidades dos três modelos base.
+    * **Stacking Classifier** usando Regressão Logística como meta-estimador.
+
+**Aprendizado / Resultados:**
+* O **Voting Classifier** foi o grande vencedor, superando todos os modelos individuais com margem significativa.
+* O Stacking teve performance similar ao melhor modelo individual (LogReg), indicando que para este dataset, a "democracia" das probabilidades (Voting) funcionou melhor que a re-aprendizagem (Stacking).
 
 ---
 
-## 🚀 Como rodar / Pré-requisitos
+## Como Executar
 
-1. Tenha instalado Python (versão ≥ 3.8) e bibliotecas usuals: `scikit-learn`, `pandas`, `numpy`, `matplotlib`, `seaborn` (se usar visualizações), etc.  
-2. Clone este repositório:  
+1. Clone o repositório.
+2. Instale as dependências:
    ```bash
-   git clone https://github.com/analluvias/ensemble-methods.git  
-   cd ensemble-methods  
+   pip install pandas scikit-learn seaborn numpy nltk regex
